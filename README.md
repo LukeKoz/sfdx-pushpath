@@ -1,4 +1,4 @@
-# sfdx-pushpath
+# sfdx-sourceset
 
 Push source from specific paths or packages with SFDX.
 

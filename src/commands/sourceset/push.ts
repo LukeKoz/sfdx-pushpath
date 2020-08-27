@@ -11,7 +11,7 @@ import * as project from '../../utils/project';
 
 // Import messages
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('sfdx-pushpath', 'path');
+const messages = Messages.loadMessages('sfdx-sourceset', 'path');
 
 const COMMAND_FLAGS = [
   'path',
@@ -21,7 +21,7 @@ const COMMAND_FLAGS = [
 /**
  * Install NPM module command class
  */
-export default class Path extends SfdxCommand {
+export default class Push extends SfdxCommand {
 
   /**
    * Description of the command

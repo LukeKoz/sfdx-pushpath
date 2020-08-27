@@ -3,7 +3,7 @@
   "description": "Push source from specific paths or packages with SFDX.",
   "version": "0.0.1",
   "author": "Luke Kozakewycz @LKozakewycz",
-  "bugs": "https://github.com/LukeKoz/sfdx-pushpath/issues",
+  "bugs": "https://github.com/LukeKoz/sfdx-sourceset/issues",
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
