@@ -115,11 +115,14 @@ export default class Push extends SfdxCommand {
    * Get the path to push
    * @private
    */
-  private getPathToPush(): string {
-    let pathToPush = this.flags.path;
+  private getPathToPush(): string[] {
+    let pathToPush;
 
-    if (!this.flags.path && this.flags.package) {
-      pathToPush = this.getPackage(this.flags.package).path;
+    if (this.flags.package) {
+      const packageNames = this.flags.package.split(',');
+      pathToPush = this.sfdxProject.packageDirectories.filter(pkg => packageNames.includes(pkg.package)).map(pkg => pkg.path);
+    } else if (this.flags.path) {
+      pathToPush = this.flags.path.split(',');
     }
 
     return pathToPush;
@@ -138,35 +141,35 @@ export default class Push extends SfdxCommand {
    * @private
    */
   private getPathsToBlock(): string[] {
-    const pathToPush = this.getPathToPush();
+    const pathsToPush = this.getPathToPush();
     const isPackage = !!this.flags.package;
 
     // Block all other packages
     if (isPackage) {
       return this.sfdxProject.packageDirectories
-        .filter(pkg => pkg.path !== pathToPush)
+        .filter(pkg => !pathsToPush.includes(pkg.path))
         .map(pkg => pkg.path.replace(/^\.\//, ''));
     }
 
-    let currentPath = path.resolve(process.cwd(), pathToPush);
     const paths = [];
 
-    this.log(pathToPush);
+    for ( const pathToPush of pathsToPush ) {
+      let currentPath = path.resolve(process.cwd(), pathToPush);
+      let i = 0;
 
-    let i = 0;
+      // Traverse up the path tree to ignore all other sibling paths
+      while (currentPath !== process.cwd() || i === 20) {
+        const pushing = path.basename(currentPath);
+        currentPath = path.resolve(currentPath, '..');
+        this.log(currentPath);
 
-    // Traverse up the path tree to ignore all other sibling paths
-    while (currentPath !== process.cwd() || i === 20) {
-      const pushing = path.basename(currentPath);
-      currentPath = path.resolve(currentPath, '..');
-      this.log(currentPath);
+        const dirs = fs.readdirSync(currentPath).filter(dir => {
+          return dir !== pushing;
+        }).map(dir => path.resolve(currentPath, dir));
 
-      const dirs = fs.readdirSync(currentPath).filter(dir => {
-        return dir !== pushing;
-      }).map(dir => path.resolve(currentPath, dir));
-
-      paths.push.apply(paths, dirs);
-      i++;
+        paths.push.apply(paths, dirs);
+        i++;
+      }
     }
 
     return paths;
