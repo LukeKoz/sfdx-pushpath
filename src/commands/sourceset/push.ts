@@ -77,9 +77,7 @@ export default class Push extends SfdxCommand {
     }
 
     // Check that the path that is being pushed exists
-    if (!this.pathExists()) {
-      throw new SfdxError(messages.getMessage('invalidPath', [this.getPathToPush()]));
-    }
+    this.validatePaths();
 
     // Get the paths to block
     const paths = this.getPathsToBlock();
@@ -132,8 +130,12 @@ export default class Push extends SfdxCommand {
    * Does the path exist?
    * @private
    */
-  private pathExists(): boolean {
-    return fs.existsSync(this.getPathToPush());
+  private validatePaths(): void {
+    for (const pathToPush of this.getPathToPush()) {
+      if (fs.existsSync(this.getPathToPush())) {
+        throw new SfdxError(messages.getMessage('invalidPath', [pathToPush]));
+      }
+    }
   }
 
   /**
@@ -153,7 +155,7 @@ export default class Push extends SfdxCommand {
 
     const paths = [];
 
-    for ( const pathToPush of pathsToPush ) {
+    for (const pathToPush of pathsToPush) {
       let currentPath = path.resolve(process.cwd(), pathToPush);
       let i = 0;
 
