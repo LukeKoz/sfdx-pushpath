@@ -11,5 +11,6 @@
   "packageDescription": "The package to push the source for.",
   "invalidPathToPush": "Path could not be found: %s",
   "invalidSfdxProject": "SFDX project file could not be found.",
-  "invalidPackage": "Package could not be found: %s"
+  "invalidPackage": "Package could not be found: %s",
+  "invalidPath": "Path could not be found: %s"
 }
