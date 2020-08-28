@@ -18,8 +18,10 @@ This command runs `force:source:push` so it uses the same flags with the excepti
 
 | Flag Name | Required | Description |
 | :--- | :--- | :--- |
-| --path | false | Path of the source you wish to push |
-| --package | false | Name of the package to push |
+| --path | false* | Path of the source you wish to push |
+| --package | false* | Name of the package to push |
+
+\* You must specify either path or package (not both or neither) 
 
 ## Prerequisites
 
@@ -39,3 +41,5 @@ To push a specific path into your org, specify the path name under the `--path` 
 $ sfdx sourceset:push -u [ALIAS] --path "force-app/main/helpers" -f
 ```
 
+## Notes
+* This plugin does not yet have unit tests.
