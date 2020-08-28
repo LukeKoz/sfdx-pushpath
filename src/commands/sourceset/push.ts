@@ -92,7 +92,9 @@ export default class Push extends SfdxCommand {
     // Unblock the paths
     this.unblockPaths();
 
-    return {};
+    return {
+      status: 0
+    };
   }
 
   /**
