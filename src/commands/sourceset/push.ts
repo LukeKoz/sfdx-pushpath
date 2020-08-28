@@ -2,7 +2,6 @@ import {flags, SfdxCommand} from '@salesforce/command';
 import {Messages, SfdxError} from '@salesforce/core';
 import {AnyJson} from '@salesforce/ts-types';
 import * as proc from 'child_process';
-import cli from 'cli-ux';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import IgnoreManager from '../../utils/IgnoreManager';
@@ -166,7 +165,6 @@ export default class Push extends SfdxCommand {
         return dir !== pushing;
       }).map(dir => path.resolve(currentPath, dir));
 
-      this.log('Adding paths: ' + dirs);
       paths.push.apply(paths, dirs);
       i++;
     }
@@ -197,8 +195,8 @@ export default class Push extends SfdxCommand {
   /**
    * Run the NPM install command on the current working directory
    */
-  private async pushSource(): Promise<void> {
-    const processFlags = [];
+  private async pushSource(): Promise<AnyJson> {
+    const processFlags = ['--json'];
     Object.keys(this.flags)
       .filter(flag => !['path', 'package'].includes(flag))
       .forEach(flag => {
@@ -220,11 +218,10 @@ export default class Push extends SfdxCommand {
         });
 
         child.stdout.on('data', message => {
-          this.log('message: ' + message.toString());
+          this.log(message.toString());
         });
 
         child.on('exit', (code, signal) => {
-          this.log('Proc exit!');
           resolve();
         });
 
