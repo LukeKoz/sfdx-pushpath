@@ -31,13 +31,13 @@ Ensure you have `.forceignore` in the root directory.
 
 To push a specific package into your org, specify the package name under the `--package` flag.
 
-```
+```shell
 $ sfdx sourceset:push -u [ALIAS] --package [PACKAGE] -f
 ```
 
 To push a specific path into your org, specify the path name under the `--path` flag.
 
-```
+```shell
 $ sfdx sourceset:push -u [ALIAS] --path "force-app/main/helpers" -f
 ```
 
