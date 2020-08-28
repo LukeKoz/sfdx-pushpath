@@ -4,6 +4,7 @@ import {AnyJson} from '@salesforce/ts-types';
 import * as proc from 'child_process';
 import cli from 'cli-ux';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import IgnoreManager from '../../utils/IgnoreManager';
 
 // Lib
@@ -12,11 +13,6 @@ import * as project from '../../utils/project';
 // Import messages
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('sfdx-sourceset', 'path');
-
-const COMMAND_FLAGS = [
-  'path',
-  'package'
-];
 
 /**
  * Install NPM module command class
@@ -32,8 +28,8 @@ export default class Push extends SfdxCommand {
    * Examples
    */
   public static examples = [
-    `$ sfdx force:source:push:path -u my-org --path ./force-app/node_modules -f
-    $ sfdx force:source:push:path -u my-org --package my-package -f
+    `$ sfdx sourceset:push -u my-org --path ./force-app/node_modules -f
+    $ sfdx sourceset:push -u my-org --package my-package -f
     `
   ];
 
@@ -45,14 +41,17 @@ export default class Push extends SfdxCommand {
    */
   protected static flagsConfig = {
     json: flags.boolean({description: messages.getMessage('jsonDescription')}),
-    loglevel: flags.boolean({description: messages.getMessage('loglevelDescription')}),
-    targetusername: flags.boolean({char: 'u', description: messages.getMessage('targetUsernameDescription')}),
-    apiversion: flags.boolean({description: messages.getMessage('apiVersionDescription')}),
+    loglevel: flags.enum({
+      description: messages.getMessage('loglevelDescription'),
+      options: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
+    }),
+    targetusername: flags.string({required: true, char: 'u', description: messages.getMessage('targetUsernameDescription')}),
+    apiversion: flags.string({description: messages.getMessage('apiVersionDescription')}),
     forceoverwrite: flags.boolean({char: 'f', description: messages.getMessage('forceOverwriteDescription')}),
     ignorewarnings: flags.boolean({char: 'g', description: messages.getMessage('ignoreWarningsDescription')}),
-    wait: flags.boolean({char: 'w', description: messages.getMessage('apiVersionDescription')}),
-    path: flags.boolean({description: messages.getMessage('pathDescription')}),
-    package: flags.boolean({description: messages.getMessage('packageDescription')})
+    wait: flags.minutes({char: 'w', description: messages.getMessage('apiVersionDescription')}),
+    path: flags.string({description: messages.getMessage('pathDescription')}),
+    package: flags.string({description: messages.getMessage('packageDescription')})
   };
 
   // Requires a project workspace
@@ -145,19 +144,32 @@ export default class Push extends SfdxCommand {
     if (isPackage) {
       return this.sfdxProject.packageDirectories
         .filter(pkg => pkg.path !== pathToPush)
-        .map(pkg => pkg.path);
+        .map(pkg => pkg.path.replace(/^\.\//, ''));
     }
 
-    const fullPathToPush = pathToPush;
+    let currentPath = path.resolve(process.cwd(), pathToPush);
+    const paths = [];
 
-    // If not a package, identify all other paths to block
-    this.sfdxProject.packageDirectories.forEach(pkg => {
-      const fullPath = this.getFullPath(pkg.path);
+    this.log(pathToPush);
 
-      if (fullPath !== fullPathToPush) {
+    let i = 0;
 
-      }
-    });
+    // Traverse up the path tree to ignore all other sibling paths
+    while (currentPath !== process.cwd() || i === 20) {
+      const pushing = path.basename(currentPath);
+      currentPath = path.resolve(currentPath, '..');
+      this.log(currentPath);
+
+      const dirs = fs.readdirSync(currentPath).filter(dir => {
+        return dir !== pushing;
+      }).map(dir => path.resolve(currentPath, dir));
+
+      this.log('Adding paths: ' + dirs);
+      paths.push.apply(paths, dirs);
+      i++;
+    }
+
+    return paths;
   }
 
   /**
@@ -186,12 +198,12 @@ export default class Push extends SfdxCommand {
   private async pushSource(): Promise<void> {
     const processFlags = [];
     Object.keys(this.flags)
-      .filter(flag => COMMAND_FLAGS.includes(flag))
+      .filter(flag => !['path', 'package'].includes(flag))
       .forEach(flag => {
         if (typeof this.flags[flag] === 'boolean' && this.flags[flag]) {
           processFlags.push((flag.length > 1 ? '--' : '-') + flag);
         } else {
-          processFlags.push(flag);
+          processFlags.push((flag.length > 1 ? '--' : '-') + flag);
           processFlags.push(this.flags[flag]);
         }
       });

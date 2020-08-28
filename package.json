@@ -48,7 +48,7 @@
     "commands": "./lib/commands",
     "bin": "sfdx",
     "topics": {
-      "path": {
+      "sourceset": {
         "description": "Push a specific path or package"
       }
     },

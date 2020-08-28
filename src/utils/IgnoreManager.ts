@@ -15,7 +15,7 @@ export default class IgnoreManager {
    * Retrieve and initiate the force ignore management utility
    */
   public constructor() {
-
+    this.getIgnoredPaths();
   }
 
   /**
@@ -28,7 +28,7 @@ export default class IgnoreManager {
   /**
    * Get a list of ignored paths
    */
-  public get ignoredPaths(): string[] {
+  public getIgnoredPaths(): string[] {
     if (!this.paths) {
       const fileData = fs.readFileSync(this.forceIgnorePath).toString();
 
@@ -59,7 +59,7 @@ export default class IgnoreManager {
    * @param pathsToAdd
    */
   public addPaths(pathsToAdd: string[]): void {
-    pathsToAdd.forEach(path => this.addPath(path));
+    pathsToAdd.forEach(path => this.addPath(path.replace(process.cwd(), '')));
   }
 
   /**
@@ -83,11 +83,11 @@ export default class IgnoreManager {
   public save(): void {
     let fileData = fs.readFileSync(this.forceIgnorePath).toString();
 
-    let pathsToAdd = this.paths.join('\n');
+    const pathsToAdd = this.paths.join('\n');
 
     if (fileData && fileData.includes(START_NOTATION) && fileData.includes(END_NOTATION)) {
-      let startIndex = fileData.indexOf(START_NOTATION);
-      let endIndex = fileData.indexOf(END_NOTATION) + END_NOTATION.length;
+      const startIndex = fileData.indexOf(START_NOTATION);
+      const endIndex = fileData.indexOf(END_NOTATION) + END_NOTATION.length;
 
       // Remove existing ignore data if any
       const startData = fileData.substring(0, startIndex);
@@ -95,11 +95,12 @@ export default class IgnoreManager {
       fileData = startData + endData;
     }
 
-    // Add ignore data
-    fileData += `
-    ${START_NOTATION}
-    ${pathsToAdd}
-    ${END_NOTATION}`;
+    if (this.paths && this.paths.length > 0) {
+      // Add ignore data
+      fileData += `${START_NOTATION}
+${pathsToAdd}
+${END_NOTATION}`;
+    }
 
     fs.writeFileSync(this.forceIgnorePath, fileData);
   }

@@ -5,7 +5,7 @@ import {AnyJson} from '@salesforce/ts-types';
 
 // Import messages
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('sfdx-npm', 'install');
+const messages = Messages.loadMessages('sfdx-sourceset', 'project');
 
 /**
  * Get the sfdx-project json file for this project

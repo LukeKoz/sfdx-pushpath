@@ -46,7 +46,7 @@ jobs:
 
 workflows:
   version: 2
-  "sfdx-npm":
+  "sfdx-sourceset":
     jobs:
       - node-latest
       - node-8
