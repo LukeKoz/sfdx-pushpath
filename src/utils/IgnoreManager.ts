@@ -30,6 +30,8 @@ export default class IgnoreManager {
    */
   public getIgnoredPaths(): string[] {
     if (!this.paths) {
+      this.paths = [];
+
       const fileData = fs.readFileSync(this.forceIgnorePath).toString();
 
       if (fileData && fileData.includes(START_NOTATION) && fileData.includes(END_NOTATION)) {
@@ -40,7 +42,6 @@ export default class IgnoreManager {
       }
     }
 
-    this.paths = [];
     return this.paths;
   }
 
@@ -84,6 +85,14 @@ export default class IgnoreManager {
     let fileData = fs.readFileSync(this.forceIgnorePath).toString();
 
     const pathsToAdd = this.paths.join('\n');
+
+    fileData += `# Added paths #######
+`;
+    fileData += this.paths.map(p => `#${p}`).join(`
+`);
+    fileData += `
+# END PATH #########
+`;
 
     if (fileData && fileData.includes(START_NOTATION) && fileData.includes(END_NOTATION)) {
       const startIndex = fileData.indexOf(START_NOTATION);

@@ -85,13 +85,11 @@ export default class Push extends SfdxCommand {
     // Block the paths
     this.blockPaths(paths);
     // Push the source
-    await this.pushSource();
+    const result = await this.pushSource();
     // Unblock the paths
     this.unblockPaths();
 
-    return {
-      status: 0
-    };
+    return result;
   }
 
   /**
@@ -127,7 +125,7 @@ export default class Push extends SfdxCommand {
   }
 
   /**
-   * Does the path exist?
+   * Validate paths
    * @private
    */
   private validatePaths(): void {
@@ -214,8 +212,13 @@ export default class Push extends SfdxCommand {
       });
 
     return new Promise((resolve, reject) => {
+      let outputs = [];
+
       try {
-        this.log('sfdx force:source:push ' + processFlags.join(' '));
+        outputs.push('sourceset:push DIR = ' + process.cwd());
+        outputs.push('sfdx force:source:push ' + processFlags.join(' '));
+        const ignore = new IgnoreManager();
+        outputs.push(ignore.getIgnoredPaths());
 
         const child = proc.spawn('sfdx force:source:push', processFlags, {
           cwd: process.cwd(),
@@ -223,11 +226,13 @@ export default class Push extends SfdxCommand {
         });
 
         child.stdout.on('data', message => {
-          this.log(message.toString());
+          outputs.push(message.toString());
         });
 
         child.on('exit', (code, signal) => {
-          resolve();
+          resolve({
+            outputs
+          });
         });
 
         child.stderr.on('error', err => {
